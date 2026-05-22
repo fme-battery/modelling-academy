@@ -32,12 +32,10 @@
         "Description": "1.5 mol/l LiPF6 dissolved in a mixture of ethylene carbonate (EC):  dimethyl carbonate (DMC) (1:1)",
         "TransferenceNumber": 0.2594,
         "DiffusionCoefficient": {
-            "FunctionName": "_electrolyte_diffusivity_Xu_2015",
-            "FilePath": "function_parameters_xu_2015.jl"
+            "FunctionName": "computeDiffusionCoefficient_xu_2015"
         },
         "IonicConductivity": {
-            "FunctionName": "_electrolyte_conductivity_Xu_2015",
-            "FilePath": "function_parameters_xu_2015.jl"
+            "FunctionName": "computeElectrolyteConductivity_xu_2015"
         },
         "Density": 1200,
         "ChargeNumber": 1,
@@ -57,7 +55,7 @@
             "ActivationEnergyOfDiffusion": 20000,
             "OpenCircuitPotential": {
                 "FunctionName": "_open_circuit_potential_lfp_Xu_2015",
-                "FilePath": "function_parameters_xu_2015.jl"
+                "FilePath": "function_parameters_Xu2015.jl"
             },
             "EntropyChange": {
                 "x": [
@@ -181,8 +179,8 @@
             "ActivationEnergyOfReaction": 4000,
             "ActivationEnergyOfDiffusion": 4000,
             "OpenCircuitPotential": {
-                "FunctionName": "_open_circuit_potential_lfp_Xu_2015",
-                "FilePath": "function_parameters_xu_2015.jl"
+                "FunctionName": "_open_circuit_potential_graphite_Xu_2015",
+                "FilePath": "function_parameters_Xu2015.jl"
             },
             "EntropyChange": {
                 "x": [

@@ -8,6 +8,6 @@
     "InitialStateOfCharge": 0.99,
     "InitialControl": "discharging",
     "DRate": 0.5,
-    "LowerVoltageLimit": 2.4,
-    "UpperVoltageLimit": 4.1
+    "LowerVoltageLimit": 2.5,
+    "UpperVoltageLimit": 3.6
 }
