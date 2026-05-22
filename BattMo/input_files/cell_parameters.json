@@ -33,11 +33,11 @@
         "TransferenceNumber": 0.2594,
         "DiffusionCoefficient": {
             "FunctionName": "_electrolyte_diffusivity_Xu_2015",
-            "FilePath": "function_parameters_Xu_2015.jl"
+            "FilePath": "function_parameters_xu_2015.jl"
         },
         "IonicConductivity": {
             "FunctionName": "_electrolyte_conductivity_Xu_2015",
-            "FilePath": "function_parameters_Xu_2015.jl"
+            "FilePath": "function_parameters_xu_2015.jl"
         },
         "Density": 1200,
         "ChargeNumber": 1,
@@ -57,7 +57,7 @@
             "ActivationEnergyOfDiffusion": 20000,
             "OpenCircuitPotential": {
                 "FunctionName": "_open_circuit_potential_lfp_Xu_2015",
-                "FilePath": "function_parameters_Xu_2015.jl"
+                "FilePath": "function_parameters_xu_2015.jl"
             },
             "EntropyChange": {
                 "x": [
@@ -182,7 +182,7 @@
             "ActivationEnergyOfDiffusion": 4000,
             "OpenCircuitPotential": {
                 "FunctionName": "_open_circuit_potential_lfp_Xu_2015",
-                "FilePath": "function_parameters_Xu_2015.jl"
+                "FilePath": "function_parameters_xu_2015.jl"
             },
             "EntropyChange": {
                 "x": [
