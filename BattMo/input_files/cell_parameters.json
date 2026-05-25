@@ -17,9 +17,8 @@
         "Name": "LP2770120",
         "Case": "Pouch",
         "NominalVoltage": 3.2,
-        "NominalCapacity": 16.5,
         "ElectrodeWidth": 67e-3,
-        "ElectrodeLength": 100e-3,
+        "ElectrodeLength": 105e-3,
         "NumberOfLayersInParallel": 1,
         "DoubleCoatedElectrodes": false,
         "TabsOnSameSide": true,
@@ -49,13 +48,13 @@
             "NumberOfElectronsTransfered": 1,
             "StoichiometricCoefficientAtSOC0": 0.999,
             "ReactionRateConstant": 3.626e-11,
-            "MassFraction": 0.7352598708584736,
+            "MassFraction": 0.7479,
             "StoichiometricCoefficientAtSOC100": 0.14778,
             "ActivationEnergyOfReaction": 4000,
             "ActivationEnergyOfDiffusion": 20000,
             "OpenCircuitPotential": {
                 "FunctionName": "_open_circuit_potential_lfp_Xu_2015",
-                "FilePath": "function_parameters_Xu2015.jl"
+                "FilePath": "function_parameters_xu_2015.jl"
             },
             "MaximumConcentration": 26390,
             "VolumetricSurfaceArea": 1878260.0,
@@ -69,13 +68,13 @@
         },
         "Coating": {
             "BruggemanCoefficient": 1.5,
-            "EffectiveDensity": 2188.066052715147,
+            "EffectiveDensity": 2179.968,
             "Thickness": 92.0e-6
         },
         "ConductiveAdditive": {
             "Description": "Carbon black",
             "Density": 1950.0,
-            "MassFraction": 0.17201227903038002,
+            "MassFraction": 0.12605,
             "ElectronicConductivity": 100.0,
             "SpecificHeatCapacity": 700.0,
             "ThermalConductivity": 2.1
@@ -83,7 +82,7 @@
         "Binder": {
             "Description": "CMC",
             "Density": 1600.0,
-            "MassFraction": 0.0927278501111464,
+            "MassFraction": 0.12605,
             "ElectronicConductivity": 100.0,
             "SpecificHeatCapacity": 700.0,
             "ThermalConductivity": 2.1
@@ -112,13 +111,13 @@
             "NumberOfElectronsTransfered": 1,
             "StoichiometricCoefficientAtSOC0": 0.001,
             "ReactionRateConstant": 1.764e-11,
-            "MassFraction": 0.95,
+            "MassFraction": 0.8,
             "StoichiometricCoefficientAtSOC100": 0.518738110000000,
             "ActivationEnergyOfReaction": 4000,
             "ActivationEnergyOfDiffusion": 4000,
             "OpenCircuitPotential": {
                 "FunctionName": "_open_circuit_potential_graphite_Xu_2015",
-                "FilePath": "function_parameters_Xu2015.jl"
+                "FilePath": "function_parameters_xu_2015.jl"
             },
             "MaximumConcentration": 31540,
             "VolumetricSurfaceArea": 142373,
@@ -132,13 +131,13 @@
         },
         "Coating": {
             "BruggemanCoefficient": 1.5,
-            "EffectiveDensity": 1782.512846046604,
+            "EffectiveDensity": 1299.652,
             "Thickness": 65e-6
         },
         "ConductiveAdditive": {
             "Description": "Unknown",
             "Density": 1950.0,
-            "MassFraction": 0.02,
+            "MassFraction": 0.1,
             "ElectronicConductivity": 100.0,
             "SpecificHeatCapacity": 632.0,
             "ThermalConductivity": 1.04
@@ -146,7 +145,7 @@
         "Binder": {
             "Description": "PVDF",
             "Density": 1800.0,
-            "MassFraction": 0.03,
+            "MassFraction": 0.1,
             "ElectronicConductivity": 100.0,
             "SpecificHeatCapacity": 632.0,
             "ThermalConductivity": 1.04
