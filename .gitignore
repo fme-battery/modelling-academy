@@ -214,3 +214,6 @@ __marimo__/
 # Julia
 Manifest.toml
 Project.toml
+
+# Project specific
+.ipynb_checkpoints/
