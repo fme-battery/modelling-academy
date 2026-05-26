@@ -199,219 +199,101 @@ end
 ###############################
 # Plot 3D mesh
 
-function extract_cell_edges(grid)
-
-    try
-        # Check if node_points field exists and is not nothing
-        if !hasfield(typeof(grid), :node_points) || grid.node_points === nothing
-            return nothing, nothing
-        end
-
-        pts = grid.node_points
-        faces = grid.faces
-
-        if pts === nothing || faces === nothing
-            return nothing, nothing
-        end
-
-        edge_set = Set{Tuple{Int,Int}}()
-
-        # Extract edges from faces using faces_to_nodes (IndirectionMap structure)
-        if hasfield(typeof(faces), :faces_to_nodes)
-            faces_to_nodes = faces.faces_to_nodes
-            
-            # Iterate through face indices
-            for i in 1:length(faces_to_nodes)
-                nodes = faces_to_nodes[i]
-                
-                n = length(nodes)
-                if n < 2
-                    continue
-                end
-
-                # Create edges between consecutive nodes
-                for j in 1:n
-                    a = nodes[j]
-                    b = nodes[mod1(j + 1, n)]
-
-                    if a > b
-                        a, b = b, a
-                    end
-
-                    push!(edge_set, (a, b))
-                end
+function extract_edges(grid)
+    pts, tri, _ = Jutul.triangulate_mesh(grid; outer=true)
+    edge_count = Dict{Tuple{Int,Int}, Int}()
+    for i in 1:size(tri,1)
+        t = tri[i,:]
+        edges = [(t[1],t[2]), (t[2],t[3]), (t[3],t[1])]
+        for (a,b) in edges
+            if a > b
+                a, b = b, a
             end
-        else
-            # Fallback: try direct iteration if faces_to_nodes doesn't exist
-            return nothing, nothing
+            edge_count[(a,b)] = get(edge_count, (a,b), 0) + 1
         end
-
-        if isempty(edge_set)
-            return nothing, nothing
-        end
-
-        return pts, edge_set
-    catch e
-        # Return nothing for any error
-        return nothing, nothing
     end
+    return pts, edge_count
 end
 
-
-function plot_grid(
-    grids;
-    include = nothing,
-    z_visual_scale = 25,
-    linewidth = 0.5
-)
-
-    # ------------------------------------------------------------
-    # PLOT SETUP
-    # ------------------------------------------------------------
-
+function build_plot(grids; include=nothing, zscale=1.0, camera=(45, 30))
+    
     plt = plot(
-        projection = :perspective,
-
         xlabel = "x (cm)",
         ylabel = "y (cm)",
         zlabel = "z (μm)",
-
-        legend = :outerright,
-
-        background_color = RGB(0.985,0.985,0.985),
-        foreground_color = :black,
-
         grid = false,
-        framestyle = :box,
-
-        camera = (42, 24),
-
-        size = (1400, 900),
-        dpi = 250,
-
-        aspect_ratio = :none
+        aspect_ratio = :equal,
+        size = (900, 700),
+        camera = camera   # ✅ added here
     )
 
-    # ------------------------------------------------------------
-    # COLORS
-    # ------------------------------------------------------------
 
     colors = Dict(
-        "NegativeElectrodeActiveMaterial"   => RGB(0.82, 0.36, 0.02),
-        "Separator"                         => RGB(0.25, 0.70, 0.95),
-        "Electrolyte"                       => RGB(0.05, 0.35, 0.75),
-        "PositiveElectrodeActiveMaterial"   => RGB(0.00, 0.60, 0.40),
-        "NegativeElectrodeCurrentCollector" => RGB(0.78, 0.45, 0.68),
-        "PositiveElectrodeCurrentCollector" => RGB(0.92, 0.86, 0.20)
+        "NegativeElectrodeActiveMaterial" => RGB(0.835, 0.369, 0.0),
+        "Separator" => RGB(0.337, 0.706, 0.914),
+        "Electrolyte" => RGB(0.0, 0.447, 0.698),
+        "PositiveElectrodeActiveMaterial" => RGB(0.0, 0.620, 0.451),
+        "NegativeElectrodeCurrentCollector" => RGB(0.800, 0.475, 0.655),
+        "PositiveElectrodeCurrentCollector" => RGB(0.941, 0.894, 0.259)
     )
 
-    xmin =  Inf
-    xmax = -Inf
-
-    ymin =  Inf
-    ymax = -Inf
-
-    zmin =  Inf
-    zmax = -Inf
-
-    # ------------------------------------------------------------
-    # DRAW DOMAINS
-    # ------------------------------------------------------------
-
     for (name, grid) in grids
-
         if include !== nothing && !(name in include)
             continue
         end
-
         try
+            pts, edge_count = extract_edges(grid)
 
-            pts, edges = extract_cell_edges(grid)
-
-            # Skip grids that don't have the required 3D structure
-            if pts === nothing || edges === nothing
-                continue
-            end
-
-            # Convert vector of SVector to coordinates
-            # pts is Vector{SVector{3, Float64}}, extract x, y, z separately
-            x = [p[1] for p in pts] .* 100
-            y = [p[2] for p in pts] .* 100
-            z = [p[3] for p in pts] .* 1e6 .* z_visual_scale
-
-            xmin = min(xmin, minimum(x))
-            xmax = max(xmax, maximum(x))
-
-            ymin = min(ymin, minimum(y))
-            ymax = max(ymax, maximum(y))
-
-            zmin = min(zmin, minimum(z))
-            zmax = max(zmax, maximum(z))
+            # ✅ convert units
+            x_pts = pts[:,1] .* 100            # m → cm
+            y_pts = pts[:,2] .* 100
+            z_pts = pts[:,3] .* 1e6 #.* zscale # m → μm
 
             X = Float64[]
             Y = Float64[]
             Z = Float64[]
 
-            for (a,b) in edges
-
-                push!(X, x[a], x[b], NaN)
-                push!(Y, y[a], y[b], NaN)
-                push!(Z, z[a], z[b], NaN)
-
+            for ((a,b), count) in edge_count
+                if count == 1
+                    push!(X, x_pts[a]); push!(X, x_pts[b]); push!(X, NaN)
+                    push!(Y, y_pts[a]); push!(Y, y_pts[b]); push!(Y, NaN)
+                    push!(Z, z_pts[a]); push!(Z, z_pts[b]); push!(Z, NaN)
+                end
             end
 
             plot!(
-                plt,
-                X, Y, Z;
-
-                label = replace(name, "_" => " "),
-
-                color = get(colors, name, :gray),
-
-                linewidth = linewidth,
-
-                alpha = 0.9
+                plt, X, Y, Z;
+                color = get(colors, name, RGB(0.3,0.3,0.3)),
+                linewidth = 1.4,
+                alpha = 0.95,
+                label = name
             )
-
-        catch err
-
-            @warn "Skipping $name" exception=(err, catch_backtrace())
-
+        catch
+            @warn "Skipping $name"
         end
     end
 
-    # ------------------------------------------------------------
-    # AXIS LIMITS
-    # ------------------------------------------------------------
+    return plt
+end
 
-    padx = 0.03 * (xmax - xmin)
-    pady = 0.03 * (ymax - ymin)
-    padz = 0.15 * (zmax - zmin)
-
-    xlims!(plt, (xmin - padx, xmax + padx))
-    ylims!(plt, (ymin - pady, ymax + pady))
-    zlims!(plt, (zmin - padz, zmax + padz))
-
-    # ------------------------------------------------------------
-    # STYLING
-    # ------------------------------------------------------------
-
-    plot!(
-        plt,
-
-        tickfontsize = 10,
-        guidefontsize = 13,
-        legendfontsize = 10,
-        titlefontsize = 16
+function plot_grid(grids; include=nothing, zscale_visual=50, camera=(45, 30))
+    p = build_plot(grids;
+        include=include,
+        zscale=zscale_visual,
+        camera=camera   # ✅ pass it through
     )
 
     title!(
-        plt,
-        "Battery Geometry Visualization\n(z exaggerated × $(z_visual_scale))"
+        p,
+        "Geometry grid"
     )
 
-    return plt
+    return p
 end
+
+
+
+
 #########################################
 # 2D data plotting
 
