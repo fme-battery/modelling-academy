@@ -199,40 +199,70 @@ end
 ###############################
 # Plot 3D mesh
 
-function extract_edges(grid)
+function extract_cell_edges(grid)
 
-    pts, tri, _ = Jutul.triangulate_mesh(grid; outer=true)
-
-    edge_count = Dict{Tuple{Int,Int}, Int}()
-
-    for i in 1:size(tri,1)
-
-        t = tri[i,:]
-
-        edges = (
-            (t[1], t[2]),
-            (t[2], t[3]),
-            (t[3], t[1])
-        )
-
-        for (a,b) in edges
-
-            if a > b
-                a, b = b, a
-            end
-
-            edge_count[(a,b)] = get(edge_count, (a,b), 0) + 1
+    try
+        # Check if node_points field exists and is not nothing
+        if !hasfield(typeof(grid), :node_points) || grid.node_points === nothing
+            return nothing, nothing
         end
-    end
 
-    return pts, edge_count
+        pts = grid.node_points
+        faces = grid.faces
+
+        if pts === nothing || faces === nothing
+            return nothing, nothing
+        end
+
+        edge_set = Set{Tuple{Int,Int}}()
+
+        # Extract edges from faces using faces_to_nodes (IndirectionMap structure)
+        if hasfield(typeof(faces), :faces_to_nodes)
+            faces_to_nodes = faces.faces_to_nodes
+            
+            # Iterate through face indices
+            for i in 1:length(faces_to_nodes)
+                nodes = faces_to_nodes[i]
+                
+                n = length(nodes)
+                if n < 2
+                    continue
+                end
+
+                # Create edges between consecutive nodes
+                for j in 1:n
+                    a = nodes[j]
+                    b = nodes[mod1(j + 1, n)]
+
+                    if a > b
+                        a, b = b, a
+                    end
+
+                    push!(edge_set, (a, b))
+                end
+            end
+        else
+            # Fallback: try direct iteration if faces_to_nodes doesn't exist
+            return nothing, nothing
+        end
+
+        if isempty(edge_set)
+            return nothing, nothing
+        end
+
+        return pts, edge_set
+    catch e
+        # Return nothing for any error
+        return nothing, nothing
+    end
 end
 
 
 function plot_grid(
     grids;
-    include=nothing,
-    z_visual_scale=25
+    include = nothing,
+    z_visual_scale = 25,
+    linewidth = 0.5
 )
 
     # ------------------------------------------------------------
@@ -257,7 +287,6 @@ function plot_grid(
         camera = (42, 24),
 
         size = (1400, 900),
-
         dpi = 250,
 
         aspect_ratio = :none
@@ -276,10 +305,6 @@ function plot_grid(
         "PositiveElectrodeCurrentCollector" => RGB(0.92, 0.86, 0.20)
     )
 
-    # ------------------------------------------------------------
-    # GLOBAL LIMITS
-    # ------------------------------------------------------------
-
     xmin =  Inf
     xmax = -Inf
 
@@ -290,7 +315,7 @@ function plot_grid(
     zmax = -Inf
 
     # ------------------------------------------------------------
-    # DRAW EACH DOMAIN
+    # DRAW DOMAINS
     # ------------------------------------------------------------
 
     for (name, grid) in grids
@@ -301,41 +326,38 @@ function plot_grid(
 
         try
 
-            pts, edge_count = extract_edges(grid)
+            pts, edges = extract_cell_edges(grid)
 
-            # ----------------------------------------------------
-            # UNIT CONVERSION
-            # ----------------------------------------------------
+            # Skip grids that don't have the required 3D structure
+            if pts === nothing || edges === nothing
+                continue
+            end
 
-            x_pts = pts[:,1] .* 100
-            y_pts = pts[:,2] .* 100
+            # Convert vector of SVector to coordinates
+            # pts is Vector{SVector{3, Float64}}, extract x, y, z separately
+            x = [p[1] for p in pts] .* 100
+            y = [p[2] for p in pts] .* 100
+            z = [p[3] for p in pts] .* 1e6 .* z_visual_scale
 
-            # Visual z exaggeration
-            z_pts = pts[:,3] .* 1e6 .* z_visual_scale
+            xmin = min(xmin, minimum(x))
+            xmax = max(xmax, maximum(x))
 
-            xmin = min(xmin, minimum(x_pts))
-            xmax = max(xmax, maximum(x_pts))
+            ymin = min(ymin, minimum(y))
+            ymax = max(ymax, maximum(y))
 
-            ymin = min(ymin, minimum(y_pts))
-            ymax = max(ymax, maximum(y_pts))
-
-            zmin = min(zmin, minimum(z_pts))
-            zmax = max(zmax, maximum(z_pts))
+            zmin = min(zmin, minimum(z))
+            zmax = max(zmax, maximum(z))
 
             X = Float64[]
             Y = Float64[]
             Z = Float64[]
 
-            for ((a,b), count) in edge_count
+            for (a,b) in edges
 
-                # Exterior edges only
-                if count == 1
+                push!(X, x[a], x[b], NaN)
+                push!(Y, y[a], y[b], NaN)
+                push!(Z, z[a], z[b], NaN)
 
-                    push!(X, x_pts[a], x_pts[b], NaN)
-                    push!(Y, y_pts[a], y_pts[b], NaN)
-                    push!(Z, z_pts[a], z_pts[b], NaN)
-
-                end
             end
 
             plot!(
@@ -346,14 +368,14 @@ function plot_grid(
 
                 color = get(colors, name, :gray),
 
-                linewidth = 2.2,
+                linewidth = linewidth,
 
-                alpha = 0.95
+                alpha = 0.9
             )
 
         catch err
 
-            @warn "Skipping $name" err
+            @warn "Skipping $name" exception=(err, catch_backtrace())
 
         end
     end
@@ -371,7 +393,7 @@ function plot_grid(
     zlims!(plt, (zmin - padz, zmax + padz))
 
     # ------------------------------------------------------------
-    # STYLE TWEAKS
+    # STYLING
     # ------------------------------------------------------------
 
     plot!(
@@ -390,8 +412,6 @@ function plot_grid(
 
     return plt
 end
-
-
 #########################################
 # 2D data plotting
 
