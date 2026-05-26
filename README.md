@@ -1,6 +1,6 @@
 # modelling-academy
 
-TLJH: https://fmebatteryhub.northeurope.cloudapp.azure.com/
+TLJH: https://fmebatteryhub.northeurope.cloudapp.azure.com/hub/user-redirect/git-pull?repo=https%3A%2F%2Fgithub.com%2Ffme-battery%2Fmodelling-academy.git&urlpath=lab%2Ftree%2Fmodelling-academy.git%2F&branch=main&targetPath=modelling-academy
 
 
 ## Contact information
